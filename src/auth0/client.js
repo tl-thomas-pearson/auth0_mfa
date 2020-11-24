@@ -5,8 +5,7 @@ import config from "../config";
 const {DOMAIN, CLIENT_ID, AUD, REDIRECT_URL, CLIENT_SECRET} = config;
 
 export default class AuthClient {
-    constructor(response_logger = () => {
-    }) {
+    constructor(response_logger = () => {}) {
         this.client = axios.create({
             baseURL: `https://${DOMAIN}`,
         });
@@ -52,7 +51,7 @@ export default class AuthClient {
             state
         });
 
-        window.open(`https://${DOMAIN}/authorize?${params}`);
+        window.location.href = `https://${DOMAIN}/authorize?${params}`;
     }
 
     // 2) get token id_token & refresh_toke from auth code.
@@ -72,14 +71,13 @@ export default class AuthClient {
                 access_token: data?.access_token || '',
                 refresh_token: data?.refresh_token || '',
             };
-        })
-            .catch(err => {
-                this.response_logger(err?.response);
-                return {
-                    access_token: '',
-                    refresh_token: '',
-                };
-            });
+        }).catch(err => {
+            this.response_logger(err?.response);
+            return {
+                access_token: '',
+                refresh_token: '',
+            };
+        });
     }
 
     // 3) use refresh_token to check against mfa scope.
@@ -108,8 +106,8 @@ export default class AuthClient {
     prompt_mfa(state = '') {
         const params = qs.stringify({
             audience: AUD,
-            scope: 'openid email profile', //offline_access',
-            response_type: 'token id_token',//'code',
+            scope: 'openid email profile offline_access',
+            response_type: 'code',
             client_id: CLIENT_ID,
             redirect_uri: REDIRECT_URL,
             nonce: 'nonce',
@@ -118,6 +116,6 @@ export default class AuthClient {
             state,
         });
 
-        window.open(`https://${DOMAIN}/authorize?${params}`);
+        window.location.href = `https://${DOMAIN}/authorize?${params}`;
     }
 }

@@ -4,8 +4,9 @@ import { Auth0Lock } from 'auth0-lock';
 import qs from 'qs';
 import AuthClient from './auth0/client';
 import { LoginButton, Button, Code } from './components';
-import config, { AUTH0_OPTIONS } from "./config";
+import config, { AUTH0_OPTIONS, get_auth_mfa_options } from "./config";
 const { CLIENT_ID, DOMAIN } = config;
+const MFA_LOCK_OPTIONS = get_auth_mfa_options();
 
 
 export default function App() {
@@ -63,12 +64,17 @@ export default function App() {
     const check_mfa = async () => {
         if (!auth_client) return;
 
-        // const mfa_token = await auth_client.get_mfa_token(refresh_token, response_logger);
-        // console.log({ refresh_token,  mfa_token });
-        //
-        // if(!mfa_token) return;
+        const mfa_token = await auth_client.get_mfa_token(refresh_token, response_logger);
+        console.log({ refresh_token,  mfa_token });
+
+        // If no mfa_token the user is still logged in with MFA.
+        if(!mfa_token) return;
 
         auth_client.prompt_mfa(auth_redirect?.state || '');
+    };
+
+    const prompt_lock_mfa = () => {
+        auth_ui.show(MFA_LOCK_OPTIONS);
     };
 
     return (
@@ -84,16 +90,7 @@ export default function App() {
                 <Button onClick={check_mfa}>
                     Manual Prompt MFA
                 </Button>
-                <Button onClick={() => auth_ui.show({
-                    ...AUTH0_OPTIONS,
-                    auth: {
-                        ...AUTH0_OPTIONS.auth,
-                       params: {
-                            ...AUTH0_OPTIONS.auth.params,
-                           mfa_required: true
-                       }
-                    }
-                })}>
+                <Button onClick={prompt_lock_mfa}>
                    Auth0 Lock MFA
                 </Button>
             </div>

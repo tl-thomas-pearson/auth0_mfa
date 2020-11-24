@@ -17,17 +17,26 @@ export const AUTH0_OPTIONS = {
     prompt: 'none',
     nonce: 'nonce',
     // needed to allow for refresh_token
-    //   connection_scope: ['offline_access'],
+    connection_scope: ['offline_access'],
     auth: {
         nonce: 'nonce',
         redirectUrl: REDIRECT_URL,
-        responseType: 'token id_token',// 'token id_token' | 'code',
+        responseType: 'code',
         params: {
             nonce: 'nonce',
-            scope: 'openid email profile',// offline_access',
+            scope: 'openid email profile offline_access',
             prompt: 'select_account',
         },
     },
 };
 
+export const get_auth_mfa_options = () => {
+    const options = { ...AUTH0_OPTIONS };
+    options.auth = { ...options.auth };
+    options.auth.params = {
+        ...options.auth.params,
+        mfa_required: true
+    };
 
+    return options;
+};
